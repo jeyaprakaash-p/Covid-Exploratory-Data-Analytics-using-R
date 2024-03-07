@@ -1,11 +1,96 @@
 ---
-title: "Assignment3"
+title: "COVID PANDEMIC 19"
 ---
 
-## Quarto
+## **Our platform is dedicated to analyzing the impact of the COVID-19 pandemic on both Indian states and the global scenario. The widespread effects of COVID-19 have inflicted significant damage on human lives, leading to a substantial loss of life worldwide. India, in particular, stands out as one of the most severely affected countries by this global health crisis.** {style="<b> background-color:yellow"}
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+#### Introducing the important Libraries used in this Analysis
 
 ```{r}
-1 + 1
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+
 ```
+
+**Dataset 1 contains details of vaccination status across all the states in INDIA**
+
+```{r}
+dataset1 <- read.csv("C:/Users/jeyap/OneDrive/Documents/R assignment 3/COVID-19 India Statewise Vaccine Data.csv")
+dataset1
+```
+
+**Dataset 2 contains details of covid cases , deaths status across all the states in INDIA**
+
+```{r}
+dataset2 <- read.csv ("C:/Users/jeyap/OneDrive/Documents/R assignment 3/Latest Covid-19 India Status.csv",header = TRUE, stringsAsFactors = FALSE)
+dataset2
+```
+
+**Dataset 3 contains complete details of covid cases and death status across all the countries in the world**
+
+```{r}
+dataset3 <- read.csv ("C:/Users/jeyap/OneDrive/Documents/R assignment 3/COVID-19 Global Statistics Dataset.csv",header = TRUE, stringsAsFactors = FALSE)
+dataset3
+```
+
+```{r}
+dataframe1 <- data.frame(dataset1$State.UTs,dataset1$Total.Vaccination.Doses, dataset1$Dose1,dataset1$Dose.2 , dataset1$Population)
+dataframe1
+
+```
+
+```{r}
+
+dataframe2 <- data.frame(dataset2$State.UTs, dataset2$Total.Cases , dataset2$Discharged , dataset2$Deaths , dataset2$Active.Ratio , dataset2$Discharge.Ratio , dataset2$Death.Ratio , dataset2$Population)
+dataframe2
+```
+
+```{r}
+
+#We are merging the dataset1 and dataset2 to analyse the covid19 records in Indian States
+
+merged_df <- merge(dataset1, dataset2, by = "State.UTs")
+
+merged_df
+```
+
+```{r}
+dataframe3 <- data.frame(dataset3)
+dataframe3
+```
+
+```{r}
+
+#Number of columns and rows
+ncol(dataframe3)
+nrow(dataframe3)
+
+#Column Names
+
+col_name_df3 <- names(dataframe3)
+col_name_df3
+
+col_name_mdf <- colnames(merged_df)
+col_name_mdf
+```
+
+### DATA CLEANING IF NECESSARY : 
+
+```{r}
+missing_values <- sum(is.na(merged_df))
+missing_values
+
+missing_values_1 <- sum(is.na(dataframe3))
+missing_values_1 
+
+missing_values_per_column <- colSums(is.na(merged_df))
+missing_values_per_column
+
+missing_values_per_column1 <- colSums(is.na(dataframe3))
+missing_values_per_column1
+
+
+```
+
+During the data preprocessing phase, it was identified that numerous columns contain missing or blank values. These omissions suggest that there was no such cases were recorded in the dataset regarding COVID cases and deaths in certain countries. Given that this dataset is dynamic and reflects real-time information, no attempt has been made to impute missing values using means or substitutes. The analysis will proceed with the available data as-is.
