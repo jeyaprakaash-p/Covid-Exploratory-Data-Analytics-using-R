@@ -1,0 +1,1 @@
+This Project is for MS5130 - Applied Analytics in Business and Society. I am performing analysis on COVID 19 in Indian states. Also, I am analysing the vaccination status in Indian Status. moreover, I am also analysing the covid data across the world.

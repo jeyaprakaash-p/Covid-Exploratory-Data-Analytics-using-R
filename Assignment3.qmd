@@ -75,7 +75,7 @@ col_name_mdf <- colnames(merged_df)
 col_name_mdf
 ```
 
-### DATA CLEANING IF NECESSARY : 
+### DATA CLEANING IF NECESSARY :
 
 ```{r}
 missing_values <- sum(is.na(merged_df))
@@ -94,3 +94,50 @@ missing_values_per_column1
 ```
 
 During the data preprocessing phase, it was identified that numerous columns contain missing or blank values. These omissions suggest that there was no such cases were recorded in the dataset regarding COVID cases and deaths in certain countries. Given that this dataset is dynamic and reflects real-time information, no attempt has been made to impute missing values using means or substitutes. The analysis will proceed with the available data as-is.
+
+## **TOTAL COVID19 CASES IN INDIAN STATES**
+
+Maharashtra in INDIA has been most Affected by COVID19 with a covid cases recorded of 81,71,048 till now. Followed by South Indian Kerala , Karnataka , Tamilnadu and Andhra Pradesh
+
+```{r}
+total_cases_statewise <- merged_df %>%
+  group_by(State.UTs) %>%
+  summarise(Total_Cases = sum(Total.Cases, na.rm = TRUE))
+
+total_cases_statewise
+
+#TOP 10 STATES AFFECTED BY COVID
+top_10_states <- total_cases_statewise %>%
+  top_n(10, Total_Cases) %>%
+  arrange(desc(Total_Cases))
+top_10_states
+```
+
+```{r}
+# Install and load necessary libraries
+install.packages("plotly")
+install.packages("sf")
+library(plotly)
+library(sf)
+
+# Replace the path with the correct path to your GeoJSON file
+geojson_path <- "C:/Users/jeyap/OneDrive/Documents/R assignment 3/Assignment3/Assignment3_files/Indian_States.txt"
+geo_data <- st_read(geojson_path)
+
+# Assuming 'top_10_states' is your dataframe with the top 10 states
+# Make sure 'top_10_states' is correctly defined in your script
+
+# Merge data
+map_data <- merge(geo_data, merged_df, by.x = "NAME_1", by.y = "State.UTs", all.x = TRUE)
+
+geo1 <- colnames(geo_data)
+geo1
+
+
+map <- plot_ly(data = map_data, type = "choropleth", locationmode = "geojson-id",
+               locations = ~id, z = ~Total.Cases, color = ~Total.Cases,
+               colorscale = "Viridis", text = ~paste(NAME_1, "<br>Total Cases: ", Total.Cases), hoverinfo = "text") %>% layout(geo = list(scope = "asia", resolution = 50, projection = list(type = "mercator")))
+
+map
+
+```
