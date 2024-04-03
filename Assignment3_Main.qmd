@@ -1,0 +1,899 @@
+---
+title: "COVID PANDEMIC 19"
+---
+
+![](images/coronavirus.jpg){width="686"}
+
+## ***Our platform is dedicated to analyzing the impact of the COVID-19 pandemic on both Indian states and the global scenario. The widespread effects of COVID-19 have inflicted significant damage on human lives, leading to a substantial loss of life worldwide. India, in particular, stands out as one of the most severely affected countries by this global health crisis.*** {style="<h1> color: Red"}
+
+#### Introducing the dataset used in this Analysis.**For our analysis, we have utilized the COVID 19 dataset (dataset 1) which contains details of vaccination status across all the states in INDIA. Let's look into this dataset.**
+
+**In the below code, we have read our vaccination csv data from local path.**
+
+```{r ,  echo=TRUE, results="hide"}
+#Loading dataset1 and reading the csv file
+dataset1 <- read.csv("C:/Users/jeyap/OneDrive/Documents/R assignment 3/COVID-19 India Statewise Vaccine Data.csv")
+dataset1
+```
+
+**Now, this Dataset 2 contains details of covid cases across all the states in India along with deaths status across all the states.**
+
+```{r,  echo=TRUE, results="hide"}
+ #reading the dataset2 csv file which contains the covid details in India
+
+dataset2 <- read.csv ("C:/Users/jeyap/OneDrive/Documents/R assignment 3/Latest Covid-19 India Status.csv",header = TRUE, stringsAsFactors = FALSE)
+dataset2
+
+```
+
+**Dataset 3 contains complete details of covid cases and death status across all the countries in the world from WHO**
+
+```{r,  echo=TRUE, results="hide"}
+#Reading the csv dataset3 which contains details of covid in all countries
+
+dataset3 <- read.csv("C:/Users/jeyap/OneDrive/Documents/R assignment 3/WHO-COVID-19-global-data.csv")
+dataset3
+```
+
+**Now, our dataset 4 contains details such as country code, latitude , longitude of all the countries in the world. We are using this dataset to merge this with dataset 3 to form a detailed dataset for ploting this in leaflet.**
+
+```{r, echo=TRUE, results="hide"}
+
+#loading the csv file of dataset 5 which is latitude and longitude of world countries
+
+dataset4 <- read.csv("C:/Users/jeyap/OneDrive/Documents/R assignment 3/world_country_and_usa_states_latitude_and_longitude_values.csv")
+dataset4
+```
+
+**Again, Now, dataset 5 contains details of latitude and longitude of Indian States. We would use this dataset to merge it with dataset 1 and 2 to form a well described dataset which can be further used to make geographical analysis.**
+
+```{r, echo=TRUE, results="hide"}
+
+#loading the csv file of dataset 5 which is latitude and longitude of indian states
+
+dataset5 <- read.csv("C:/Users/jeyap/OneDrive/Documents/R assignment 3/India States-UTs.csv")
+dataset5
+```
+
+**Here, We are creating a dataframe by choosing our essential columns from dataset 1 and 2 for our Analysis.**
+
+```{r, echo=TRUE, results="hide"}
+#creating dataframe from dataset1 by choosing required columns
+dataframe1 <- data.frame(dataset1$State.UTs,dataset1$Total.Vaccination.Doses, dataset1$Dose1,dataset1$Dose.2 , dataset1$Population)
+dataframe1
+```
+
+**In the code below , We are merging the above 2 dataframes into a single dataframe which contains details of Covid cases and deaths in Indian states and the other dataframe contains details of Vaccination status in Indian states.**
+
+```{r, echo=TRUE, results="hide"}
+##creating dataframe from dataset2   by choosing required columns
+dataframe2 <- data.frame(dataset2$State.UTs, dataset2$Total.Cases , dataset2$Discharged , dataset2$Deaths , dataset2$Active.Ratio , dataset2$Discharge.Ratio , dataset2$Death.Ratio , dataset2$Population)
+dataframe2
+```
+
+**In the code below , We are merging the above 2 dataframes into a single dataframe which contains details of Covid cases and deaths in Indian states and the other dataframe contains details of Vaccination status in Indian states.**
+
+```{r, echo=TRUE, results="hide"}
+#We are merging the dataset1 and dataset2 to analyse the covid19 records in Indian States
+
+merged_df <- merge(dataset1, dataset2, by = "State.UTs")
+
+merged_df
+```
+
+**Here, we are merging the dataset 2 and dataset 5 by changing the column name of State into a similar column name in dataset 5 as like in dataset 2 and making it into a dataframe "merged_df1"**
+
+```{r, echo=TRUE, results="hide"}
+#merging dataset5 and dataset2 that is indian covid data and lat,lon data
+merged_1 <- data.frame(dataset5)
+merged_1
+colnames(merged_1) <- c("State.UTs","latitude","longitude")
+colnames(merged_1)
+
+merged_df1 <- merge(dataset2, merged_1, by = "State.UTs")
+merged_df1
+```
+
+**Like we did in the last chunk, we are changing the column name in dataset 4 to match the column name in Dataset 3 to merge them together and making it as a dataframe by selecting the required columns.**
+
+```{r, echo=TRUE, results="hide"}
+# we are changing the col names of Dataset 4 to match two tables column names i.e dataset 3 and 4
+
+names(dataset4)[which(names(dataset4) == "country")] <- "Country"
+names(dataset4)[which(names(dataset4) == "country_code")] <- "Country_code"
+merged_data <- merge(dataset4, dataset3, by.x = "Country_code", by.y = "Country_code")
+merged_data
+
+```
+
+```{r, echo=TRUE, results="hide"}
+library(dplyr)
+#we are grouping the countries summing the numerical columns 
+df <- merged_data %>% group_by(Country_code, Country.y, WHO_region, latitude, longitude) %>% summarise(across(where(is.numeric), sum)) %>% ungroup()
+df
+
+dataframe3 <- data.frame(df)
+
+dataframe3
+```
+
+## **For better Understand of how we merged datasets and understanding dataframes we have depicted mermaid diagram.**
+
+**This diagram illustrates the process of merging various datasets to create two separate dataframes: merged_df and merged_df1.**
+
+1.  **Dataset 1 and Dataset 2 are initially converted into individual dataframes.**
+2.  **These dataframes are then merged using a common column called "State.UTs" to create a new dataframe named merged_df.**
+3.  **Similarly, Dataset 5 is merged with Dataset 2 using the same column name "State.UTs" and labeled as merged_df1.**
+4.  **On the other hand, Dataset 3 and Dataset 4 are merged using a common column called "Country."**
+5.  **Finally, dataset 7 was introduced for the purpose of showcasing qualitative analysis**
+
+**Overall, this process results in the creation of two merged dataframes, each containing consolidated information from multiple datasets based on shared columns. This enables comprehensive analysis and exploration of the combined data from the respective datasets.**
+
+![](images/mermaid-diagram-20240403124839.png){fig-align="center" width="717"}
+
+```{r}
+
+#Number of columns and rows
+ncol(dataframe3)
+nrow(dataframe3)
+
+#Column Names
+
+colnames(merged_df1)
+colnames(dataframe3)
+```
+
+### DATA CLEANING IF NECESSARY :
+
+```{r}
+#finding missing values in all datasets and dataframes
+missing_values <- sum(is.na(merged_df))
+missing_values
+
+missing_values_1 <- sum(is.na(dataframe3))
+missing_values_1 
+
+missing_values_per_column <- colSums(is.na(merged_df))
+missing_values_per_column
+
+missing_values_per_column1 <- colSums(is.na(dataframe3))
+missing_values_per_column1
+
+```
+
+**During the data preprocessing phase, it was identified that numerous columns contain missing or blank values. These omissions suggest that there was no such cases were recorded in the dataset regarding COVID cases and deaths in certain countries. Given that this dataset is dynamic and reflects real-time information, no attempt has been made to impute missing values using means or substitutes. The analysis will proceed with the available data as-is.**
+
+## **TOTAL COVID19 CASES IN INDIAN STATES**
+
+**Maharashtra in INDIA has been most Affected by COVID19 with a covid cases recorded of 81,71,048 till now. Followed by South Indian Kerala , Karnataka , Tamilnadu and Andhra Pradesh**
+
+```{r}
+#Finding total covid cases by Indian statewise
+total_cases_statewise <- merged_df %>%
+  group_by(State.UTs) %>%
+  summarise(Total_Cases = sum(Total.Cases, na.rm = TRUE))
+
+total_cases_statewise
+
+#TOP 10 STATES AFFECTED BY COVID
+top_10_states <- total_cases_statewise %>%
+  top_n(10, Total_Cases) %>%
+  arrange(desc(Total_Cases))
+top_10_states
+```
+
+**Next, we are plotting this in a barchart using ggplot library for better understanding of this using a visualization.**
+
+```{r}
+#Plotting the total covid cases in INDIAN states in a barchart
+library(ggplot2)
+ggplot(total_cases_statewise, aes(x = reorder(State.UTs, Total_Cases), y = Total_Cases)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Total COVID-19 Cases Statewise",
+       x = "State/UTs",
+       y = "Total Cases") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+
+```
+
+```{r}
+#Plotting top 10 states which are affected by covid 19
+
+ggplot(top_10_states, aes(x = reorder(State.UTs, Total_Cases), y = Total_Cases)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  labs(title = "Top 10 States Affected by COVID-19",
+       x = "State/UTs",
+       y = "Total Cases") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+```
+
+#### Let's Look into the percentage of COVID 19 cases in Indian States based on it's population:
+
+```{r}
+#Finding the percentage of covid cases in each state  based on population
+
+percentage_of_covidcases <- (merged_df$Total.Cases / merged_df$Population.x) * 100
+
+#For displaying states along with percentages 
+
+for (i in 1:nrow(merged_df)) {
+  cat(merged_df$State.UTs[i], ": ", round(percentage_of_covidcases[i], 2), "%\n")
+}
+```
+
+All the plotly graphs used in this Analysis was referred from this [plotly source](https://plotly.com/r/)
+
+```{r}
+#plotting a interactive pie chart states the percentage of population has affected by covid in indian states
+
+library(plotly)
+
+# Creating a  plot
+plot <- plot_ly(x = ~merged_df$State.UTs, y = ~percentage_of_covidcases, type = 'bar', 
+                marker = list(color = 'rgb(158,202,225)', line = list(color = 'rgb(8,48,107)', width = 1.5)))
+
+plot <- plot %>% layout(title = "Percentage of COVID Cases in Each State from it's population",
+                        xaxis = list(title = "State"),
+                        yaxis = list(title = "Percentage of COVID Cases"))
+plot
+
+```
+
+```{r}
+library(plotly)
+
+
+states <- merged_df$State.UTs
+percentages <- percentage_of_covidcases
+
+# Create a DataFrame
+df <- data.frame(State = states, Percentage = percentages)
+
+# Create a pie chart
+fig <- plot_ly(df, labels = ~State, values = ~Percentage, type = "pie",
+               textinfo = "percent+label", hole = 0.3,
+               title = "Percentage of COVID Cases by State")
+fig
+
+
+```
+
+**From the above analysis, we can see that ##Kerala## state has more percentage of people affected by covid cases based on the population of the state.**
+
+**Now, Let's look into the percentage of death happened in all states based on Total cases**
+
+```{r}
+
+# calculating the death rate for each state
+merged_df$Death_Rate <- (merged_df$Deaths / merged_df$Total.Cases) * 100
+
+# Display state names and their corresponding death rates from states column using for loop and the decimal value is rounded to 2 numbers 
+
+for (i in 1:nrow(merged_df)) {
+  cat(merged_df$State.UTs[i], ": ", round(merged_df$Death_Rate[i], 2), "%\n")
+}
+
+
+```
+
+**From the above output, we could see that Punjab State has the highest percentage of deaths based on the cases occurred.** **To visualize this for better understanding we have used plotly graph in the below chunk,**
+
+```{r}
+#Calculating and plotting the death rate of each state
+
+library(ggplot2)
+library(plotly)
+
+# Calculating Death Rate
+merged_df$Death_Rate <- (merged_df$Deaths / merged_df$Total.Cases) * 100
+
+# Create ggplot 
+
+gg <- ggplot(merged_df, aes(x = State.UTs, y = Death_Rate)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Death Rate for Each State", x = "State", y = "Death Rate (%)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# Converting the ggplot to plotly object
+plot <- ggplotly(gg)
+
+# Display plot
+plot
+
+```
+
+### Now, Lets look Top 10 states which faced more percentage of death due to COVID 19
+
+**Based on the analysis and the chart, it is evident that Maharashtra has experienced a higher number of deaths. Specifically, over 148,000 individuals have lost their lives due to COVID-19 in the region.**
+
+```{r}
+#finding Top 10 states which faced more percentage of death due to COVID 19
+
+library(plotly)
+library(dplyr)
+
+total_deaths_statewise <- merged_df %>%
+  group_by(State.UTs) %>%
+  summarise(Total_death = sum(Deaths, na.rm = TRUE))
+
+#top 10 states by total deaths
+top_10_states <- total_deaths_statewise %>%
+  top_n(10, Total_death) %>%
+  arrange(desc(Total_death))
+
+# Plotly Bar chart for top 10 states by total death
+
+plot <- plot_ly(top_10_states, x = ~State.UTs, y = ~Total_death, type = 'bar',
+                marker = list(color = '#1f77b4')) %>%
+  layout(title = 'Top 10 States Affected by COVID (Total Deaths)',
+         xaxis = list(title = 'State/UTs'),
+         yaxis = list(title = 'Total Deaths'))
+
+plot
+
+```
+
+**In the below code, we have performed a analysis to figure out the top 10 States which are affected by covid 19 cases and based on total deaths and we have plotted that in a 3D scatterplot for better understanding.**
+
+```{r}
+library(plotly)
+library(dplyr)
+
+total_deaths_cases_statewise <- merged_df %>%
+  group_by(State.UTs) %>%
+  summarise(Total_Deaths = sum(Deaths, na.rm = TRUE),
+            Total_Cases = sum(Total.Cases, na.rm = TRUE))
+
+# finding Top 10 states by total deaths
+top_10_states <- total_deaths_cases_statewise %>%
+  top_n(10, Total_Deaths) %>%
+  arrange(desc(Total_Deaths))
+
+# Create Plotly 3D Scatter plot for top 10 states by total death
+plot <- plot_ly(top_10_states, x = ~State.UTs, y = ~Total_Deaths, z = ~Total_Cases, type = 'scatter3d',
+                marker = list(color = 'indianred1', size = 10)) %>%
+  layout(title = 'Top 10 States Affected by COVID (Total Deaths vs Total Cases)',
+         scene = list(xaxis = list(title = 'State/UTs'),
+                      yaxis = list(title = 'Total Deaths'),
+                      zaxis = list(title = 'Total Cases')))
+
+plot
+
+```
+
+**Again, we have used a plotly library for plotting a interactive scatterplot which shows the total deaths against total cases in all the states in India.**
+
+```{r}
+library(plotly)
+
+# Assuming merged_df is your merged dataframe
+
+# Extracting relevant columns
+data <- merged_df[, c("State.UTs", "Total.Cases", "Deaths", "Population.y")]
+
+# Dropping rows with NA values
+data <- na.omit(data)
+
+# Create scatter plot
+scatter_plot <- plot_ly(data, x = ~Total.Cases, y = ~Deaths, text = ~State.UTs, hoverinfo = "text",
+                        mode = "markers", marker = list(size = 10, color = ~Population.y,
+                                                       colorscale = "Viridis", opacity = 0.7)) %>%
+               layout(title = "Scatter Plot of Total Cases vs Deaths by State",
+                      xaxis = list(title = "Total Cases"),
+                      yaxis = list(title = "Deaths"),
+                      hovermode = "closest")
+
+# Print the scatter plot
+scatter_plot
+
+```
+
+# [Mapping Covid cases in Indian map]{.underline}
+
+**I used ggiraph for analysing the total covid cases statewise using map to visualize in this code and this code is inspired from this [ggiraph Source](https://davidgohel.github.io/ggiraph/) and for ggmap i refered from [ggmap Source](https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf).**
+
+For the purpose of plotting this map, we have gathered a geojson file from this [Geojson source](https://github.com/Subhash9325/GeoJson-Data-of-Indian-States/tree/master)
+
+```{r}
+
+#plotting the covid cases in geographical plot using geojson data in Indian Map
+
+library(ggplot2)
+library(sf)
+library(ggmap)
+library(ggiraph)
+
+covid_data <- data.frame(merged_df1)  # Load your actual dataset here
+
+# Load GeoJSON file
+
+india_map <- st_read("C:/Users/jeyap/OneDrive/Documents/R assignment 3/Assignment3/india_states.geojson")  
+
+p <- ggplot() +
+  geom_sf(data = india_map) +
+  geom_point_interactive(aes(x = longitude, y = latitude, color = Total.Cases, tooltip = State.UTs), data = covid_data, size = 3) +
+  scale_color_gradient(low = "blue", high = "red", name = "Total Cases") +  
+  labs(title = "COVID-19 Cases in India", x = "Longitude", y = "Latitude")
+
+girafe(code = print(p))
+```
+
+**Now, let's look into the correlation matrix performed to the overall correlation between all the numerical variables in our dataframe such as total cases, total deaths, death ratio, discharge ratio, active ratio , total vaccination doses. In the correlation 1 represents strong positive correlation , -1 represents negative correlation and 0 represents neutral correlation. We have used 3 colors to indicate this in a heatmap**
+
+```{r}
+library(ggplot2)
+
+# choosing the variables
+Varr <- c("Total.Vaccination.Doses", 
+                   "Total.Cases", "Active", "Discharged", "Deaths", 
+                   "Active.Ratio", "Discharge.Ratio", "Death.Ratio")
+
+selected_data <- merged_df[Varr]
+
+# calculating correlation matrix
+correlation_matrix <- cor(selected_data, use = "pairwise.complete.obs")
+correlation_df <- as.data.frame(as.table(correlation_matrix))
+names(correlation_df) <- c("Var1", "Var2", "Correlation")
+
+#Heatmap
+ggplot(data = correlation_df, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "slategray", high = "mistyrose1", mid = "wheat", 
+                       midpoint = 0, limit = c(-1,1), space = "Lab", 
+                       name="Correlation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  coord_fixed()
+
+```
+
+## Correlation between Dose 1 and Dose 2 Vaccination
+
+Now, we are performing General Linear Model to find relationship between 2 variables dose 1 and dose 2 vaccination status.
+
+```{r}
+
+library(dplyr)
+
+# Fit the GLM
+glm_model <- glm(Dose.2 ~ Dose1, data = merged_df, family = gaussian)
+
+# Summary of the model
+summary(glm_model)
+
+
+
+
+```
+
+**The GLM analysis indicates a strong statistical significance between Dose 1 and Dose 2 vaccination data, underscoring the robust response to the vaccination campaign among the populace in India for preventing COVID cases. Additionally, the model demonstrates an optimal fit. These findings are visualized in the following line graph created with ggplot.**
+
+```{r}
+ggplot(merged_df, aes(x = Dose1, y = Dose.2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Relationship between Dose 1 and Dose 2 Vaccinations",
+       x = "Dose 1 Vaccinations",
+       y = "Dose 2 Vaccinations")
+```
+
+## Chi-Square Test
+
+**In this analysis, we conducted a Chi-Square test to examine the relationship between Indian states and their respective COVID-19 cases. The obtained significance value of 0.2374 suggests that we did not find enough evidence to reject the null hypothesis. This indicates that there is a noticeable difference between the observed and expected frequencies of COVID-19 cases across Indian states.**
+
+```{r}
+library(dplyr)
+data <- merged_df[, c("State.UTs", "Total.Cases")]
+
+# Creating a contingency table
+contingency_table <- table(data$State.UTs, data$Total.Cases)
+
+# chi-square test
+chi_square_result <- chisq.test(contingency_table)
+chi_square_result
+```
+
+## Spearman's rank correlation
+
+**Spearman's rank correlation analysis was conducted to examine the relationship between the total number of COVID-19 cases and total vaccinations across all states. The resulting correlation coefficient of 0.8779326 indicates a robust positive correlation between these variables. This suggests that states with higher COVID-19 case counts tend to have correspondingly higher levels of vaccination. While this correlation may suggest that affected individuals have received COVID-19 vaccinations, it's important to note that other factors could contribute to this relationship. Nonetheless, the findings underscore the substantial number of vaccinations administered for COVID-19. The results are visualized in the interactive scatter plot below.**
+
+```{r}
+#Spearman's rank correlation
+merged_df$Total.Vaccination <- as.numeric(merged_df$Total.Vaccination)
+merged_df$Total.Cases <- as.numeric(merged_df$Total.Cases)
+correlation <- cor.test(merged_df$Total.Vaccination, merged_df$Total.Cases, method = "spearman")
+
+correlation
+
+```
+
+```{r, warning = FALSE}
+# Load necessary packages
+library(plotly)
+
+# Assuming merged_df is your dataframe
+
+# Create a scatter plot
+scatter_plot <- plot_ly(merged_df, x = ~Total.Vaccination, y = ~Total.Cases, type = 'scatter', mode = 'markers',
+                        marker = list(color = ~Total.Cases, colorscale = 'Viridis', size = 10)) %>%
+               layout(title = "Total Vaccination vs Total COVID Cases",
+                      xaxis = list(title = "Total Vaccination"),
+                      yaxis = list(title = "Total COVID Cases"),
+                      hoverinfo = "text",
+                      hovertext = ~paste("Total Vaccination: ", Total.Vaccination, "<br>",
+                                         "Total COVID Cases: ", Total.Cases))
+
+# Print the plot
+print(scatter_plot)
+
+```
+
+## General Linear Model
+
+**In this analysis, we conducted a General Linear Model (GLM) to explore the relationship between the total population and the corresponding total vaccination status across all states in India. Subsequently, we visualized this relationship using a line graph to enhance comprehension. Our analysis revealed a robust association between total vaccination numbers and the population of each state, as clearly depicted in the line graph.**
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+
+model <- glm(Total.Vaccination.Doses ~ Population.x, data = merged_df)
+model
+
+# Create an interaction plot
+ggplot(merged_df, aes(x = Population.x, y = Total.Vaccination.Doses)) +
+  geom_point(color = "grey") +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Population", y = "Total Vaccination Doses",
+       title = "Interaction Plot: Population vs. Total Vaccination Doses")
+
+```
+
+```{r}
+library(interactions) 
+
+```
+
+**Let's Look at the 3D model of Population plotted against the Total Vaccination Dose in a rotation scatter plot:**
+
+**RGL - [Source](https://cran.r-project.org/web/packages/rgl/vignettes/rgl.html) and [Github Source](https://github.com/dmurdoch/rgl) I faced issue while plotting graph so it was refered from [Stack Overflow Source](https://stackoverflow.com/questions/29988230/using-expression-in-r-rgl-axis-labels)**
+
+```{r,warning=FALSE}
+#using rgl library for 3D plot
+library(rgl)
+
+# 3D scatter plot
+plot3d(merged_df$Population.x, merged_df$Total.Vaccination.Doses, type = "s",
+       col = "purple", size = 2, xlab = "Population", ylab = "Vaccination Doses",
+       zlab = "Additional Variable")
+
+# labels to the axes
+axes3d(labels = c("Population", "Vaccination Doses", "Additional"))
+n
+#for Rotating the graph 
+play3d(spin3d(axis = c(0, 0, 1), rpm = 10), duration = 10)
+
+
+
+```
+
+**The below attached image is the output snippet of the above code which is from RGL device ( This snip is attached for the purpose of showcasing the output. For better output, the output will be rendered when running the above code in a RGL device )**
+
+![](images/clipboard-1828824619.png){width="583"}
+
+**In this analysis, we utilized a GAM model to investigate the relationship between population size and total COVID-19 cases. The findings indicate a statistically significant association between population and total cases, as supported by the low p-value of 0.002781. This suggests that the COVID-19 cases represent at least 20% of the overall population across states. The relationship is visually depicted in the graph below created using ggplot.**
+
+```{r,warning=FALSE}
+
+
+library(gam)
+# GAM model
+gam_model <- gam(Total.Cases ~ s(Population.x), data = merged_df)
+summary(gam_model)
+
+
+```
+
+Let's look at the linear model for population
+
+```{r}
+
+predictions <- predict(gam_model, newdata = merged_df)
+
+# Created ggplot interaction plot with GAM predictions using previous code
+ggplot(merged_df, aes(x = Population.x, y = Total.Cases)) +
+  geom_point(color = "grey") +
+  geom_line(aes(y = predictions), color = "seagreen", size = 1) +
+  labs(x = "Population", y = "Total Cases",
+       title = "Interaction Plot: Population vs. Total Cases")
+```
+
+### Now, we will dive deep into the COVID 19 Analysis over all other countries in the world. We will look into some of other countries which are deeply affected by COVID.
+
+```{r , echo=TRUE, results="hide"}
+
+dataframe3
+
+```
+
+## **Now, lets look into the leaflet map for showcasing the total cases and total deaths across all the countries**
+
+**To visualize cumulative cases and deaths on a leaflet map, we utilized dataset 4, which includes latitude and longitude data for countries. By clicking on the markers, users can access details such as the country name along with its corresponding cumulative cases and deaths.**
+
+```{r}
+library(leaflet)
+map <- leaflet() %>%
+  setView(lat = 0, lng = 0, zoom = 2)
+
+# adding circle markers for cumulative cases and deaths
+map %>%
+  addTiles() %>%  
+  addCircles(
+    data = dataframe3,
+    lng = ~longitude,
+    lat = ~latitude,
+    radius = ~sqrt(Cumulative_cases * 2), 
+    fillColor = ~"red",
+    fillOpacity = 0.5,
+    stroke = FALSE,  # Remove border around circles (optional)
+    highlight = highlightOptions(
+      opacity = 1,
+      weight = 5
+    ),  
+    popup = paste(
+      "<b>Country:</b>", df$Country.y, "<br>",
+      "<b>Cumulative Cases:</b>",dataframe3$Cumulative_cases, "<br>",
+      "<b>Cumulative Deaths:</b>", dataframe3$Cumulative_deaths
+    )
+  )
+```
+
+**This summary statistics is generated by aggregating the total cases and total deaths for each country. It involves summing the cases and deaths reported for each day across all days.**
+
+```{r}
+library(dplyr)
+
+# Group by Country.y that is the column containing country names)
+
+summary_statistics <- dataframe3 %>%
+  group_by(Country.y) %>%
+  summarise(  Total_Cumulative_cases = sum(Cumulative_cases, na.rm = TRUE),
+              Total_Cumulative_deaths = sum(Cumulative_deaths, na.rm = TRUE))
+
+summary_statistics
+
+```
+
+**Here, we have identified the top 10 countries most affected by COVID-19 based on cumulative cases. According to the summary, the United States (USA) has been significantly impacted by COVID-19, reporting a total of 12,943,690,395 cases to date. Following closely behind, India, and China rank 2nd, 3rd respectively, with the highest number of reported cases. Throughout our analysis we used dplyr package to find the top n function.**
+
+```{r}
+
+library(dplyr)
+
+# Top 10 countries based on cumulative cases
+
+top_countries_cases <- dataframe3 %>%
+  group_by(Country.y) %>%
+  summarise(Total_Cumulative_cases = sum(Cumulative_cases, na.rm = TRUE)) %>%
+  top_n(10, Total_Cumulative_cases) %>%
+  arrange(desc(Total_Cumulative_cases))
+
+top_countries_cases
+
+
+```
+
+**Here, we have identified the top 10 countries most affected by COVID-19 based on cumulative deaths. From the summary, we can see that again USA stands in the 1st place with more number of deaths and followed by USA, Brazil and India stands in 2nd and 3rd place respectively with more number of deaths happended due to COVID 19.**
+
+```{r}
+
+# Top 10 countries based on cumulative deaths
+
+top_countries_deaths <- dataframe3 %>%
+  group_by(Country.y) %>%
+  summarise(Total_Cumulative_deaths = sum(Cumulative_deaths, na.rm = TRUE)) %>%
+  top_n(10, Total_Cumulative_deaths) %>%
+  arrange(desc(Total_Cumulative_deaths))
+top_countries_deaths
+```
+
+**Plotting the Top 10 Countries affected by COVID 19 using ggplot and plotly library for making it interactive**
+
+```{r}
+library(ggplot2)
+library(plotly)
+
+
+# Create ggplot object for showing top 10 countries affected by covid 19
+
+graphhh <- ggplot(top_countries_cases, aes(x = reorder(Country.y, Total_Cumulative_cases), y = Total_Cumulative_cases)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  labs(title = "Top 10 Countries Affected by COVID-19",
+       x = "Country",
+       y = "Total Cases") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+
+# Convert ggplot object to plotly object for interactions
+
+X <- ggplotly(graphhh)
+X
+
+
+```
+
+**Plotting the Top 10 Countries affected by COVID 19 deaths using ggplot and plotly library for making it interactive**
+
+```{r}
+library(ggplot2)
+library(plotly)
+
+
+# Created ggplotfor showing Top 10 coutries affected by Covid deaths
+
+graph <- ggplot(top_countries_deaths, aes(x = reorder(Country.y, Total_Cumulative_deaths), y = Total_Cumulative_deaths)) +
+  geom_bar(stat = "identity", fill = "maroon") +
+  labs(title = "Top 10 Countries Affected by COVID-19 based on Death",
+       x = "Country",
+       y = "Total Deaths") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+
+# Convert ggplot to plotly for a interactive part
+X <- ggplotly(graph)
+X
+```
+
+**In the code snippet provided, the `tidyr` and `dplyr` libraries are utilized to manipulate the data for plotting new deaths and cases that occurred recently. These data are plotted against the Y and Z axes, with the date reported on the X axis. Additionally, the `plotly` library is employed to create an interactive chart for visualization.**
+
+```{r, echo=TRUE, results="hide"}
+library(dplyr)
+library(tidyr)
+
+df <- dataset3 %>%
+  select(Date_reported, New_cases, New_deaths) %>%
+  gather(key = "variable", value = "value", -Date_reported) 
+df
+
+
+```
+
+```{r}
+#created a 3D graph for plotting this
+
+library(plotly)
+plot_ly(df, x = ~Date_reported, y = ~variable, z = ~value, type = "scatter3d", mode = "lines") %>%
+  layout(scene = list(xaxis = list(title = "Date_reported"),
+                      yaxis = list(title = "Variable"),
+                      zaxis = list(title = "Value")))
+```
+
+**In this code, the `interaction` library referred from** [Source](https://cran.r-project.org/web/packages/interactions/interactions.pdf) and **is utilized to create a linear model to investigate the relationship between cumulative deaths and cumulative cases across all countries worldwide. The analysis reveals that both cumulative deaths and cumulative cases are statistically significant predictors in the model. Additionally, the presence of the interaction term suggests potential non-linear effects influencing the relationship between the two variables**.
+
+```{r}
+
+library(interactions)
+
+
+# created a regression model with an interaction
+model <- lm(Cumulative_deaths ~ Cumulative_cases * Cumulative_deaths, data = dataframe3)
+
+summary(model)
+
+
+```
+
+## Time series Analysis:
+
+**In our time series analysis, we examined the cumulative cases and deaths worldwide from 2019 to the present. This data is visually represented in a line graph, which offers interactive information on cumulative cases and deaths when hovering over the graph. The upward trend in the line graph reflects the overall increase in cumulative cases over the years, providing a clear depiction of the surge in cases. This interactive graph, created using ggplot and plotly, facilitates an easy understanding of the progression of cases and deaths from 2019 to the present.**
+
+```{r}
+
+
+library(ggplot2)
+library(dplyr)
+library(plotly)
+
+# Converted 'Date_reported'column to Date object
+dataset3$Date_reported <- as.Date(dataset3$Date_reported)
+
+# created a subset of the dataset for analysis and omitting missing values 
+time_series_data <- dataset3 %>%
+  select(Date_reported, Cumulative_cases, Cumulative_deaths) %>%
+  na.omit()  
+
+# data aggregation to calculate overall cases and deaths of all countries
+
+time_series_data <- time_series_data %>%
+  group_by(Date_reported) %>%
+  summarise(Total_cumulative_cases = sum(Cumulative_cases),
+            Total_cumulative_deaths = sum(Cumulative_deaths))
+time_series_data
+
+# Created the ggplot 
+
+Graphh <- ggplot(time_series_data, aes(x = Date_reported)) +
+  geom_line(aes(y = Total_cumulative_cases, color = "Cumulative Cases")) +
+  geom_line(aes(y = Total_cumulative_deaths, color = "Cumulative Deaths")) +
+  labs(title = "Time Series of Cumulative Cases and Cumulative Deaths",
+       x = "Date", y = "Count") +
+  scale_color_manual(name = "Metric", values = c("Cumulative Cases" = "black", "Cumulative Deaths" = "green")) +
+  theme_minimal()
+
+# Converted ggplot to plotly 
+X <- ggplotly(Graphh)
+X
+
+```
+
+### **To facilitate qualitative analysis for this assessment, I've incorporated an additional dataset that includes textual information. Unlike my previous datasets, this one comprises news headlines, descriptions, and their associated sentiments recorded on specific dates. We've leveraged the description column from this dataset to construct a word cloud, identifying the most common words.**
+
+```{r, echo=TRUE, results="hide"}
+dataset6 <- read.csv("C:/Users/jeyap/Downloads/raw_data.csv/raw_data.csv")
+dataset6
+colnames(dataset6)
+```
+
+```{r, warning=FALSE}
+#libraries used are text mining and wordcloud 
+library(tm)
+library(wordcloud)
+
+#created corpus from dataset6 description column 
+corpus <- Corpus(VectorSource(dataset6$Description))
+
+# datapreprocessing such as Cleaning the text 
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+
+# Created a document term matrix for corpus and converted it into matrix
+
+dtm <- DocumentTermMatrix(corpus)
+dtm_matrix <- as.matrix(dtm)
+```
+
+```{r, warning=FALSE}
+
+library(wordcloud)
+
+
+# Created a word cloud using the "description" column
+
+wordcloud(dataset6$Headline)
+
+wordcloud(dataset6$Headline , colors = brewer.pal(8, "Dark2"), min.freq = 10, max.words = 100)
+
+
+```
+
+```{r}
+word_freq <- colSums(dtm_matrix)
+
+# Sort word_freq in descending order
+sorted_freq <- sort(word_freq, decreasing = TRUE)
+
+#top 40 most frequent words
+top_40_words <- head(sorted_freq, 40)
+top_40_words
+
+```
+
+## [Key Insights from the Analysis:]{.underline}
+
+**From our analysis of the COVID-19 datasets specific to India, we observe that Maharashtra state has been significantly impacted by the virus, followed closely by other southern Indian states, which have also experienced high numbers of cases and deaths. When considering the global scenario, the United States stands out as one of the worst affected countries, with a substantial number of cases. Following the USA, India ranks prominently in terms of total cases, especially considering its large population.**
+
+**However, it's noteworthy that the widespread administration of vaccination doses, both within Indian states and globally, has contributed significantly to reducing COVID-19 cases worldwide. This suggests a positive trend in controlling the spread of the virus through vaccination efforts.**
+
+## **Please note: While attempting to commit my code to GitHub, I encountered an issue due to the large size of my files. Despite trying various methods, including Git Large File Storage, I was unable to resolve the issue. Although I have made several commits during my assessment, they have not been reflected in the repository I shared with you. To demonstrate my commitment to the project and the progress made, I have attached screenshots of the commit history.**
+
+![](images/GIT%20HISTORY%20-%201-01.png){fig-align="center" width="540mm"}
+
+![](images/GIT%20HISTORY%20-%202-01.png)
+
+![](images/GIT%20HISTORY%20-%203-01.png)
+
+![](images/Git%20history%204-01.png)
